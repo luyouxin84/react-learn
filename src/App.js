@@ -1,35 +1,32 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import {combineReducers, createStore, applyMiddleware} from 'redux';
+import { createStore, applyMiddleware} from 'redux';
 import logger from 'redux-logger';
-import {BrowserRouter as Router, Route, NavLink} from 'react-router-dom'
-import { Provider } from 'react-redux';
+import {BrowserRouter as Router, Route, NavLink, Redirect, Switch} from 'react-router-dom'
+import {Provider} from 'react-redux';
 import Home from './component/home/home';
 import About from './component/about/about';
-// 初始store值
-const STATE_FROM_SERVER = {
-  init: 'true'
-}
-const todoApp = (state, action) => {
-  switch (action.type) {
-    case 'test':
-      return state = {
-        ...state,
-        test: action.data
-      };
-    default:
-      return state;
-  }
-}
-let store = createStore(todoApp, STATE_FROM_SERVER, applyMiddleware(logger));
-console.log(store.getState());
+import reducers from './action';
+
+let store = createStore(reducers, applyMiddleware(logger));
 store.dispatch({type: 'test', data: 'test passed!!'});
 
 // 初始化导航栏
-const navlist = ['Home', 'about', 'me'];
-
-class App extends Component {
+const navlist = ['Home', 'about', 'topics'];
+const _nav = navlist.map((item) => <NavLink to={item} id={`${item}`} key={item} activeClassName='selected'>{item}</NavLink>)
+const page404 = () => (
+  <h1>Not found page!</h1>
+)
+class App extends Component {  
+  componentDidMount(){
+    //应该是写在子里边，激发action，然后调用如下方法。。。免费，不如用官方例子简单
+    console.log(location.pathname);
+    let b = location.pathname.match(/\/\w*/g);
+    let c = b.toString().slice(1,)
+    let o = document.getElementById(c);
+    o.style.color = 'red';
+  }
   render() {
     return (
       <div className="App">
@@ -42,12 +39,14 @@ class App extends Component {
           <Router>
             <div>
               <div className='navbar'>
-                <NavLink to="/" exact activeClassName="selected">Home</NavLink>
-                <NavLink to="/about" activeClassName="selected">About</NavLink>
-                <NavLink to="/topics" activeClassName="selected">Topics</NavLink>
-              </div>
-              <Route exact path="/" component={Home}/>
-              <Route path="/about" component={About}/>
+                 {_nav}
+              </div>             
+              <Switch>
+                <Route path="/Home" exact component={Home}/>
+                <Route path="/about" exact component={About}/> {/*<Route  path="/topics" exact component={topics}/>*/}
+                <Redirect from='/' to='/Home'/>
+                <Route component={page404}/>
+              </Switch>
             </div>
           </Router>
         </Provider>
